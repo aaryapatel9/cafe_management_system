@@ -53,7 +53,6 @@ export function renderCustomerDisplay() {
             <span class="cd-order-count">${activeOrders.length} active order${activeOrders.length !== 1 ? "s" : ""}</span>
             <span class="cd-order-count">${activeBranch ? activeBranch.name : ""}</span>
           </div>
-          <button id="customer-back-btn" class="btn btn-ghost btn-sm">Back</button>
         </div>
         ${activeOrders.length ? `
           <div class="cd-orders-grid">
@@ -68,11 +67,6 @@ export function renderCustomerDisplay() {
         `}
       </div>
     `;
-
-    document.getElementById("customer-back-btn")?.addEventListener("click", () => {
-      clearInterval(refreshInterval);
-      window.location.hash = "#/backend/products";
-    });
   }
 
   render();

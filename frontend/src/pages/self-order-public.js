@@ -37,6 +37,7 @@ export async function renderSelfOrderPublic(token, query = {}) {
   const app = document.getElementById("app");
   const currency = store.get("settings")?.currency || "₹";
   const upiId = String(query?.upi || "").trim();
+  const savedOrderKey = `self_order_active_${token}`;
   let socket = null;
   let reconnectTimer = null;
   let shouldReconnect = true;
@@ -95,6 +96,31 @@ export async function renderSelfOrderPublic(token, query = {}) {
     let cartItems = [];
     let submittedOrder = null;
     let socketState = "connecting";
+    let showThankYou = false;
+
+    const readSavedOrder = () => {
+      try {
+        const raw = localStorage.getItem(savedOrderKey);
+        if (!raw) return null;
+        const saved = JSON.parse(raw);
+        return saved?.id ? saved : null;
+      } catch {
+        return null;
+      }
+    };
+
+    const saveActiveOrder = (order) => {
+      const orderId = order?.id || order?.order_id;
+      if (!orderId) return;
+      localStorage.setItem(savedOrderKey, JSON.stringify({
+        id: orderId,
+        orderNumber: order.order_number || order.orderNumber || "",
+      }));
+    };
+
+    const clearActiveOrder = () => {
+      localStorage.removeItem(savedOrderKey);
+    };
 
     const connectToOrder = (orderId) => {
       cleanupSocket();
@@ -114,6 +140,7 @@ export async function renderSelfOrderPublic(token, query = {}) {
           const payload = JSON.parse(event.data);
           if (payload?.order?.id) {
             submittedOrder = payload.order;
+            saveActiveOrder(submittedOrder);
             render();
           }
         } catch {
@@ -134,6 +161,7 @@ export async function renderSelfOrderPublic(token, query = {}) {
         reconnectTimer = setTimeout(async () => {
           try {
             submittedOrder = await store.fetchSelfOrderOrder(submittedOrder.id, token);
+            saveActiveOrder(submittedOrder);
           } catch {
             // Keep the last known state if refresh fails.
           }
@@ -248,6 +276,7 @@ export async function renderSelfOrderPublic(token, query = {}) {
             ` : ""}
 
             <div class="mobile-footer-actions">
+              <button class="btn btn-secondary btn-block" id="self-order-again-btn" type="button">Order Again</button>
               <button class="btn btn-ghost btn-block" id="self-order-done-btn" type="button">${submittedOrder?.payment_status === "paid" && submittedOrder?.kitchen_status === "completed" ? "Done" : "Close"}</button>
             </div>
           </div>
@@ -267,11 +296,46 @@ export async function renderSelfOrderPublic(token, query = {}) {
         showToast("Payment marked as sent. Waiting for staff confirmation.", "success");
       });
 
+      document.getElementById("self-order-again-btn")?.addEventListener("click", () => {
+        shouldReconnect = false;
+        cleanupSocket();
+        clearActiveOrder();
+        submittedOrder = null;
+        cartItems = [];
+        socketState = "connecting";
+        render();
+      });
+
       document.getElementById("self-order-done-btn")?.addEventListener("click", () => {
         shouldReconnect = false;
         cleanupSocket();
-        router.navigate("/login");
+        clearActiveOrder();
+        showThankYou = true;
+        submittedOrder = null;
+        render();
       });
+    };
+
+    const renderThankYou = () => {
+      app.innerHTML = `
+        <div class="payment-layout mobile-order-shell" style="justify-content:center;padding:12px">
+          <div class="card mobile-order-card mobile-tracker-card" style="width:min(100%, 480px);margin:0 auto;text-align:center">
+            <div class="mobile-tracker-hero" style="padding-bottom:28px">
+              <div class="mobile-tracker-orb"></div>
+              <div class="mobile-tracker-title-wrap" style="margin-top:12px">
+                <span class="mobile-live-pill mobile-live-pill-success" style="margin:0 auto 14px auto">
+                  ${icon("check", "", "Thank you")}
+                  <span>Order completed</span>
+                </span>
+                <h1 class="mobile-tracker-title">Thank you for your order</h1>
+                <p class="mobile-tracker-subtitle">
+                  We hope you enjoyed your experience at ${tokenData.branch_name || "our restaurant"}.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
     };
 
     const renderMenu = () => {
@@ -404,6 +468,7 @@ export async function renderSelfOrderPublic(token, query = {}) {
           const response = await store.submitSelfOrder(token, cartItems);
           showToast(`Order ${response.order_number} sent to kitchen`, "success");
           submittedOrder = response;
+          saveActiveOrder(response);
           cartItems = [];
           connectToOrder(response.id || response.order_id);
           render();
@@ -414,9 +479,22 @@ export async function renderSelfOrderPublic(token, query = {}) {
     };
 
     const render = () => {
-      if (submittedOrder) renderTracker();
+      if (showThankYou) renderThankYou();
+      else if (submittedOrder) renderTracker();
       else renderMenu();
     };
+
+    const savedOrder = readSavedOrder();
+    if (savedOrder?.id) {
+      try {
+        submittedOrder = await store.fetchSelfOrderOrder(savedOrder.id, token);
+        saveActiveOrder(submittedOrder);
+        connectToOrder(submittedOrder.id || submittedOrder.order_id);
+      } catch {
+        clearActiveOrder();
+        submittedOrder = null;
+      }
+    }
 
     render();
   } catch (error) {

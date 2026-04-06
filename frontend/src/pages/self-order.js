@@ -15,6 +15,7 @@ function resolvePublicSelfOrderBase() {
 
 export function renderSelfOrder(container) {
   const tables = store.getAll("tables").filter((table) => table.active);
+  const floors = store.getAll("floors").filter((floor) => floor.active !== false);
   const session = store.getActiveSession();
   const activeBranch = store.getAll("branches").find((branch) => String(branch.id) === String(store.getActiveBranchId())) || null;
   const upiMethod = store.getAll("paymentMethods").find((method) => method.type === "upi" && method.enabled && method.upiId);
@@ -28,7 +29,16 @@ export function renderSelfOrder(container) {
 
   function render() {
     const currentTable = tables.find((table) => String(table.id) === String(selectedTable));
+    const currentFloor = floors.find((floor) => String(floor.id) === String(currentTable?.floorId)) || null;
     const tokenUrl = generatedToken ? selfOrderUrl(generatedToken.token) : "";
+    const tablesByFloor = floors
+      .map((floor) => ({
+        ...floor,
+        tables: tables
+          .filter((table) => String(table.floorId) === String(floor.id))
+          .sort((a, b) => Number(a.number) - Number(b.number)),
+      }))
+      .filter((floor) => floor.tables.length > 0);
 
     container.innerHTML = `
       <div class="backend-header">
@@ -56,7 +66,7 @@ export function renderSelfOrder(container) {
               <span class="badge badge-success">Session ${session.id} Active</span>
             </div>
             <p style="font-size:var(--fs-sm);color:var(--color-text-muted);margin-bottom:var(--space-md)">
-              Only active tables from the current branch are shown here.
+              Only active tables from the current branch are shown here, grouped floor-wise.
             </p>
 
             ${tables.length === 0 ? `
@@ -65,11 +75,21 @@ export function renderSelfOrder(container) {
                 <div class="empty-state-text">No active tables available in this branch.</div>
               </div>
             ` : `
-              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-sm)">
-                ${tables.map((table) => `
-                  <button class="btn ${String(selectedTable) === String(table.id) ? "btn-primary" : "btn-ghost"} table-select-btn" data-table="${table.id}">
-                    T${table.number}
-                  </button>
+              <div style="display:flex;flex-direction:column;gap:var(--space-lg)">
+                ${tablesByFloor.map((floor) => `
+                  <div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:var(--space-sm);margin-bottom:var(--space-sm)">
+                      <div style="font-weight:700">${floor.name}</div>
+                      <span class="badge badge-info">${floor.tables.length} table${floor.tables.length === 1 ? "" : "s"}</span>
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-sm)">
+                      ${floor.tables.map((table) => `
+                        <button class="btn ${String(selectedTable) === String(table.id) ? "btn-primary" : "btn-ghost"} table-select-btn" data-table="${table.id}">
+                          T${table.number}
+                        </button>
+                      `).join("")}
+                    </div>
+                  </div>
                 `).join("")}
               </div>
             `}
@@ -78,6 +98,7 @@ export function renderSelfOrder(container) {
               <div style="margin-top:var(--space-lg);padding-top:var(--space-lg);border-top:1px solid var(--color-border);display:flex;flex-direction:column;gap:var(--space-sm)">
                 <div style="font-size:var(--fs-sm);color:var(--color-text-muted)">Selected table</div>
                 <div style="font-size:var(--fs-lg);font-weight:700">Table ${currentTable?.number || "?"}</div>
+                <div style="font-size:var(--fs-sm);color:var(--color-text-muted)">${currentFloor?.name || "Floor not assigned"}</div>
                 <button class="btn btn-secondary btn-block" id="generate-token-btn" type="button">
                   ${generatedToken ? "Regenerate QR" : "Generate QR"}
                 </button>
