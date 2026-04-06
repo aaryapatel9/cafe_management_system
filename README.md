@@ -492,16 +492,6 @@ python -m pip install -r backend\requirements.txt
 9. Create/open a session
 10. Test QR self-ordering on a phone
 
-## Deployment Note
-
-This project can be deployed for demo usage with a free-ish stack such as:
-
-- frontend: Vercel
-- backend: Render
-- database: Neon
-
-For a real restaurant production rollout, use paid hosting and a stable managed database.
-
 ## License
 
 No license file is currently included in this repository.
