@@ -1,4 +1,4 @@
-# Cafe Management System
+# RasoiHQ
 
 ![Vite](https://img.shields.io/badge/Vite-6.4-646CFF?logo=vite&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/Frontend-JavaScript-F7DF1E?logo=javascript&logoColor=111)

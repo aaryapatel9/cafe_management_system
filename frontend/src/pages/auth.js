@@ -21,8 +21,8 @@ export function renderAuth() {
     <div class="auth-page">
       <div class="auth-card glass">
         <div class="auth-logo">
-          <div class="auth-logo-icon">${icon('brand', '', 'Odoo POS Cafe')}</div>
-          <h1>Odoo POS Cafe</h1>
+          <div class="auth-logo-icon">${icon('brand', '', 'RasoiHQ')}</div>
+          <h1>RasoiHQ</h1>
           <p>Restaurant Point of Sale System</p>
         </div>
 

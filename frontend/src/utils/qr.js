@@ -4,7 +4,7 @@
 
 import QRCode from "qrcode";
 
-function toUPILink({ upiId, payeeName = "POS Cafe", amount, currency = "INR" }) {
+function toUPILink({ upiId, payeeName = "RasoiHQ", amount, currency = "INR" }) {
   return `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(payeeName)}&am=${Number(amount || 0).toFixed(2)}&cu=${encodeURIComponent(currency)}`;
 }
 
@@ -22,7 +22,7 @@ async function drawQRCode(canvasElement, value, size) {
 
 export async function generateUPIQR(
   canvasElement,
-  { upiId, payeeName = "POS Cafe", amount, currency = "INR" }
+  { upiId, payeeName = "RasoiHQ", amount, currency = "INR" }
 ) {
   if (!upiId) {
     throw new Error("UPI ID is required to generate the QR code");

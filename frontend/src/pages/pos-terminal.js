@@ -25,7 +25,7 @@ export function renderPosTerminal(view = 'floor', params = {}) {
     <div class="pos-layout">
       <div class="pos-topbar">
         <div class="pos-topbar-left">
-          <span class="pos-topbar-brand" id="pos-brand-home" style="cursor:pointer;" title="Back to Dashboard">${icon('brand', '', 'POS Cafe')}<span>POS Cafe</span></span>
+          <span class="pos-topbar-brand" id="pos-brand-home" style="cursor:pointer;" title="Back to Dashboard">${icon('brand', '', 'RasoiHQ')}<span>RasoiHQ</span></span>
           <div class="pos-topbar-nav">
             <button class="pos-topbar-btn ${view === 'floor' ? 'active' : ''}" id="pos-nav-table">Table</button>
             <button class="pos-topbar-btn ${view === 'order' ? 'active' : ''}" id="pos-nav-register">Register</button>

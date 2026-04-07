@@ -33,7 +33,7 @@ export function renderPosSettings(container) {
 
       <div class="pos-terminal-card card" style="margin:0 auto">
         <div class="pos-terminal-icon">${icon('pos', '', 'POS Terminal')}</div>
-        <div class="pos-terminal-title">Odoo POS Cafe</div>
+        <div class="pos-terminal-title">RasoiHQ</div>
         <div class="pos-terminal-info">Point of Sale Terminal</div>
 
         <div style="text-align:left;margin-bottom:var(--space-lg)">

@@ -60,7 +60,7 @@ from app.schemas import (
 )
 from app.websocket import manager as websocket_manager
 
-app = FastAPI(title="Odoo POS Cafe API")
+app = FastAPI(title="RasoiHQ API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,

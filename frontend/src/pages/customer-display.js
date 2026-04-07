@@ -47,7 +47,7 @@ export function renderCustomerDisplay() {
     app.innerHTML = `
       <div class="cd-layout">
         <div class="cd-topbar">
-          <div class="cd-brand">${icon("brand", "", "Odoo POS Cafe")}<span>Odoo POS Cafe</span></div>
+          <div class="cd-brand">${icon("brand", "", "RasoiHQ")}<span>RasoiHQ</span></div>
           <div class="cd-topbar-center">
             <span class="cd-live-badge">${icon("session", "", "Live orders")}<span>LIVE</span></span>
             <span class="cd-order-count">${activeOrders.length} active order${activeOrders.length !== 1 ? "s" : ""}</span>

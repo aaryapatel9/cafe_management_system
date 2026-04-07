@@ -39,8 +39,8 @@ export function renderBackend(section = 'products') {
     <div class="backend-layout">
       <aside class="backend-sidebar">
         <div class="sidebar-brand" id="sidebar-home-btn" style="cursor:pointer;" title="Back to Home">
-          <span class="sidebar-brand-icon">${icon('brand', '', 'POS Cafe')}</span>
-          <h2>POS Cafe</h2>
+          <span class="sidebar-brand-icon">${icon('brand', '', 'RasoiHQ')}</span>
+          <h2>RasoiHQ</h2>
         </div>
 
         <div class="sidebar-section" style="padding-bottom:var(--space-md);border-bottom:1px solid var(--color-border)">

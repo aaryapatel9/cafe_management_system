@@ -3,7 +3,7 @@ $ErrorActionPreference = "Stop"
 $projectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $projectRoot
 
-Write-Host "== POS Cafe setup starting ==" -ForegroundColor Cyan
+Write-Host "== RasoiHQ setup starting ==" -ForegroundColor Cyan
 
 if (-not (Test-Path ".env")) {
   Copy-Item ".env.example" ".env"

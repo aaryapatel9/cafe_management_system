@@ -81,12 +81,12 @@ export function exportToPDF(title, headers, rows) {
     </head>
     <body>
       <h1>${title}</h1>
-      <div class="meta">Generated: ${new Date().toLocaleString()} | Odoo POS Cafe</div>
+      <div class="meta">Generated: ${new Date().toLocaleString()} | RasoiHQ</div>
       <table>
         <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
         <tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody>
       </table>
-      <div class="footer">Odoo POS Cafe — Report</div>
+      <div class="footer">RasoiHQ — Report</div>
     </body>
     </html>
   `;

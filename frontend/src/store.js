@@ -406,7 +406,7 @@ class Store {
   }
 
   async initialize() {
-    this.set("settings", { storeName: "Odoo POS Cafe", currency: "₹" });
+    this.set("settings", { storeName: "RasoiHQ", currency: "₹" });
     this.set("paymentMethods", this.getFixedPaymentMethods());
     if (!this.getToken()) return;
 

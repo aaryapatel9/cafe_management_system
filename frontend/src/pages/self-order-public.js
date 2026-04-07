@@ -292,7 +292,7 @@ export async function renderSelfOrderPublic(token, query = {}) {
         generateUPIQR(qrCanvas, {
           upiId,
           amount: grandTotal,
-          payeeName: tokenData.branch_name || "POS Cafe",
+          payeeName: tokenData.branch_name || "RasoiHQ",
         }).catch(() => showToast("Failed to generate payment QR", "error"));
       }
 
