@@ -10,12 +10,6 @@ export function renderKitchenDisplay() {
   const app = document.getElementById("app");
   const activeBranch = store.getAll("branches").find((branch) => String(branch.id) === String(store.getActiveBranchId())) || null;
   let refreshInterval;
-  const dismissedStorageKey = `kitchen_dismissed_completed_${activeBranch?.id || "default"}`;
-  const dismissedCompletedIds = new Set(JSON.parse(localStorage.getItem(dismissedStorageKey) || "[]"));
-
-  function persistDismissedCompleted() {
-    localStorage.setItem(dismissedStorageKey, JSON.stringify([...dismissedCompletedIds]));
-  }
 
   function updateThemeButton() {
     const themeButton = document.getElementById("kitchen-theme-toggle");
@@ -71,13 +65,6 @@ export function renderKitchenDisplay() {
   async function render(options = {}) {
     await store.syncPublicData();
     let kitchenOrders = store.getAll("kitchenOrders");
-    if (options.dismissCompleted) {
-      kitchenOrders
-        .filter((order) => order.stage === "completed")
-        .forEach((order) => dismissedCompletedIds.add(String(order.id)));
-      persistDismissedCompleted();
-    }
-    kitchenOrders = kitchenOrders.filter((order) => !(order.stage === "completed" && dismissedCompletedIds.has(String(order.id))));
     const columns = {
       to_cook: kitchenOrders.filter((order) => order.stage === "to_cook"),
       preparing: kitchenOrders.filter((order) => order.stage === "preparing"),
@@ -126,7 +113,20 @@ export function renderKitchenDisplay() {
       updateThemeButton();
     });
 
-    document.getElementById("kitchen-refresh")?.addEventListener("click", () => render({ dismissCompleted: true }));
+    document.getElementById("kitchen-refresh")?.addEventListener("click", async () => {
+      try {
+        const response = await store.clearCompletedKitchenOrders();
+        showToast(
+          response?.cleared_count
+            ? `${response.cleared_count} completed order${response.cleared_count === 1 ? "" : "s"} cleared`
+            : "No completed orders to clear",
+          "success",
+        );
+        render();
+      } catch (error) {
+        showToast(error.message, "error");
+      }
+    });
     document.getElementById("kitchen-logout")?.addEventListener("click", () => {
       clearInterval(refreshInterval);
       store.logout();

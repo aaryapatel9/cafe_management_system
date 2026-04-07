@@ -2,13 +2,12 @@ const STORE_PREFIX = "odoo_pos_";
 
 function resolveApiBase() {
   const configuredBase = String(import.meta.env.VITE_API_BASE || "").trim();
-  if (configuredBase) return configuredBase.replace(/\/$/, "");
-
   const { protocol, hostname } = window.location;
   const isLocalHost = hostname === "localhost" || hostname === "127.0.0.1";
   if (isLocalHost) {
     return "http://localhost:8000";
   }
+  if (configuredBase) return configuredBase.replace(/\/$/, "");
   return `${protocol}//${hostname}:8000`;
 }
 
@@ -317,6 +316,8 @@ class Store {
     return orders.map((order) => ({
       id: order.id,
       backendId: order.id,
+      source: order.source || order.order_type || "pos",
+      orderType: order.order_type || order.source || "pos",
       branchId: order.branch_id,
       branchName: order.branch_name || "",
       tableId: order.table_id,
@@ -876,6 +877,12 @@ class Store {
   async toggleKitchenItem(itemId) {
     await this._api(this._withBranch(`/kitchen/items/${itemId}/toggle`), { method: "POST" }, false);
     await this.syncPublicData();
+  }
+
+  async clearCompletedKitchenOrders() {
+    const response = await this._api(this._withBranch("/kitchen/orders/clear-completed"), { method: "POST" }, false);
+    await this.syncPublicData();
+    return response;
   }
 
   getApiBase() {

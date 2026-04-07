@@ -118,6 +118,31 @@ export async function renderUsers(container) {
       });
     });
 
+    container.querySelectorAll(".toggle-user-status-btn").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const userId = button.dataset.userId;
+        const user = store.getAll("users").find((entry) => String(entry.id) === String(userId));
+        if (!user) return;
+
+        try {
+          await store.updateUser(user.id, {
+            branch_id: user.branch_id ?? user.branchId ?? null,
+            name: user.name,
+            username: user.username,
+            email: user.email,
+            password: "",
+            role: user.role,
+            is_active: !user.is_active,
+          });
+          showToast(`User ${user.is_active ? "marked inactive" : "activated"} successfully`, "success");
+          if (String(editingUserId) === String(user.id)) editingUserId = null;
+          renderPage();
+        } catch (error) {
+          showToast(error.message, "error");
+        }
+      });
+    });
+
     container.querySelectorAll(".delete-user-btn").forEach((button) => {
       button.addEventListener("click", async () => {
         try {
@@ -179,7 +204,12 @@ export async function renderUsers(container) {
                   <button class="btn btn-sm btn-ghost edit-user-btn" data-user-id="${user.id}">Edit</button>
                   ${
                     String(user.id) !== String(currentUser?.id)
-                      ? `<button class="btn btn-sm btn-ghost delete-user-btn" data-user-id="${user.id}" style="color:var(--color-danger)">Remove</button>`
+                      ? `
+                        <button class="btn btn-sm btn-ghost toggle-user-status-btn" data-user-id="${user.id}" style="color:${user.is_active ? "var(--color-warning)" : "var(--color-success)"}">
+                          ${user.is_active ? "Make Inactive" : "Make Active"}
+                        </button>
+                        <button class="btn btn-sm btn-ghost delete-user-btn" data-user-id="${user.id}" style="color:var(--color-danger)">Remove</button>
+                      `
                       : ""
                   }
                 </div>

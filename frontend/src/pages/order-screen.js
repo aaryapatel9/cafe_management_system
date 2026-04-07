@@ -37,6 +37,7 @@ export function renderOrderScreen(container, tableId) {
     order = store.add("orders", {
       tableId,
       tableNumber: table?.number,
+      source: "pos",
       status: "open",
       items: [],
       subtotal: 0,
@@ -220,6 +221,10 @@ export function renderOrderScreen(container, tableId) {
 
     document.getElementById("send-kitchen-btn")?.addEventListener("click", async () => {
       try {
+        if (order.source === "self" || order.orderType === "self") {
+          showToast("This phone order is already sent to the kitchen.", "info");
+          return;
+        }
         saveOrder();
         const sentOrder = await store.sendOrder(store.getDraftOrder());
         order = { ...store.getDraftOrder(), id: sentOrder.id, backendId: sentOrder.id, status: "in_progress" };

@@ -48,7 +48,7 @@ export function renderBackend(section = 'products') {
           ${
             role === 'admin'
               ? `
-                <select class="form-input" id="branch-switcher" style="width:100%">
+                <select class="form-input sidebar-branch-select" id="branch-switcher">
                   ${branches.map((branch) => `
                     <option value="${branch.id}" ${String(branch.id) === String(activeBranchId) ? 'selected' : ''}>
                       ${branch.name}

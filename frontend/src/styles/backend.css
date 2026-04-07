@@ -65,6 +65,13 @@
   margin-bottom: var(--space-sm);
 }
 
+.sidebar-branch-select {
+  width: calc(100% - (var(--space-lg) * 2));
+  max-width: 188px;
+  margin: 0 var(--space-lg);
+  display: block;
+}
+
 .sidebar-nav {
   display: flex;
   flex-direction: column;

@@ -285,6 +285,7 @@ class Order(Base, TimestampMixin):
     order_type: Mapped[str] = mapped_column(String(50), default="pos")
     status: Mapped[str] = mapped_column(String(50), default="draft")
     kitchen_status: Mapped[str] = mapped_column(String(50), default="pending")
+    kitchen_cleared: Mapped[bool] = mapped_column(Boolean, default=False)
     payment_status: Mapped[str] = mapped_column(String(50), default="unpaid")
     notes: Mapped[str] = mapped_column(Text, default="")
     subtotal: Mapped[Decimal] = mapped_column(Numeric(10, 2), default=0)

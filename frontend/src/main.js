@@ -7,7 +7,7 @@ import { store } from './store.js';
 import { seedData } from './utils/seed.js';
 
 // Restore theme preference
-const savedTheme = localStorage.getItem('pos_theme') || 'dark';
+const savedTheme = localStorage.getItem('pos_theme') || 'light';
 document.documentElement.setAttribute('data-theme', savedTheme);
 
 // Seed demo data on first launch

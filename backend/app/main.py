@@ -209,6 +209,7 @@ def ensure_branches(db: Session) -> None:
     db.execute(text("ALTER TABLE pos_terminals ADD COLUMN IF NOT EXISTS branch_id INTEGER REFERENCES branches(id)"))
     db.execute(text("ALTER TABLE pos_sessions ADD COLUMN IF NOT EXISTS branch_id INTEGER REFERENCES branches(id)"))
     db.execute(text("ALTER TABLE orders ADD COLUMN IF NOT EXISTS branch_id INTEGER REFERENCES branches(id)"))
+    db.execute(text("ALTER TABLE orders ADD COLUMN IF NOT EXISTS kitchen_cleared BOOLEAN DEFAULT FALSE"))
     db.execute(text("ALTER TABLE self_order_tokens ADD COLUMN IF NOT EXISTS branch_id INTEGER REFERENCES branches(id)"))
     db.execute(text("ALTER TABLE floors DROP CONSTRAINT IF EXISTS floors_name_key"))
     db.execute(text("ALTER TABLE pos_terminals DROP CONSTRAINT IF EXISTS pos_terminals_name_key"))
@@ -445,18 +446,18 @@ def resolve_self_order_order(db: Session, token: str, order_id: int) -> Order:
 def sync_product_variants(product: Product, variant_payloads: list[dict]) -> None:
     product.variants_rel.clear()
     for variant_payload in variant_payloads:
-        variant_name = str(variant_payload.get("name", "")).strip()
+        variant_name = str(variant_payload.get("name") or variant_payload.get("attribute") or "").strip()
         if not variant_name:
             continue
         variant = ProductVariant(name=variant_name)
         for value_payload in variant_payload.get("values", []):
-            label = str(value_payload.get("label", "")).strip()
+            label = str(value_payload.get("label") or value_payload.get("name") or "").strip()
             if not label:
                 continue
             variant.values.append(
                 ProductVariantValue(
                     label=label,
-                    extra_price=Decimal(str(value_payload.get("extra_price", 0) or 0)),
+                    extra_price=Decimal(str(value_payload.get("extra_price", value_payload.get("extra", 0)) or 0)),
                 )
             )
         product.variants_rel.append(variant)
@@ -782,6 +783,18 @@ def delete_user(user_id: int, current_user: User = Depends(require_role("admin")
         raise HTTPException(status_code=404, detail="User not found")
     if user.id == current_user.id:
         raise HTTPException(status_code=400, detail="You cannot delete your own account")
+    has_sessions = db.query(POSSession).filter(POSSession.responsible_id == user.id).first()
+    if has_sessions:
+        raise HTTPException(
+            status_code=400,
+            detail="This user cannot be deleted because POS session history exists. Mark the user inactive instead.",
+        )
+    has_orders = db.query(Order).filter(Order.responsible_id == user.id).first()
+    if has_orders:
+        raise HTTPException(
+            status_code=400,
+            detail="This user cannot be deleted because order history exists. Mark the user inactive instead.",
+        )
     db.delete(user)
     db.commit()
     return {"message": "User deleted"}
@@ -1282,7 +1295,7 @@ def kitchen_orders(branch_id: int | None = None, db: Session = Depends(get_db)) 
     branch = resolve_public_branch(db, branch_id)
     orders = (
         order_query(db)
-        .filter(Order.branch_id == branch.id, Order.status.in_(["sent", "completed"]))
+        .filter(Order.branch_id == branch.id, Order.status.in_(["sent", "completed"]), Order.kitchen_cleared.is_(False))
         .order_by(Order.created_at.desc())
         .all()
     )
@@ -1299,9 +1312,22 @@ async def kitchen_advance(order_id: int, branch_id: int | None = None, db: Sessi
         raise HTTPException(status_code=400, detail="Only sent orders can be updated in kitchen")
     transitions = {"to_cook": "preparing", "preparing": "completed", "completed": "completed"}
     order.kitchen_status = transitions.get(order.kitchen_status, "to_cook")
+    order.kitchen_cleared = False
     db.commit()
     await publish_order_update(order.id)
     return {"message": "Kitchen status updated", "kitchen_status": order.kitchen_status}
+
+
+@app.post("/kitchen/orders/clear-completed")
+def clear_completed_kitchen_orders(branch_id: int | None = None, db: Session = Depends(get_db)) -> dict:
+    branch = resolve_public_branch(db, branch_id)
+    cleared_count = (
+        db.query(Order)
+        .filter(Order.branch_id == branch.id, Order.kitchen_status == "completed", Order.kitchen_cleared.is_(False))
+        .update({"kitchen_cleared": True}, synchronize_session=False)
+    )
+    db.commit()
+    return {"message": "Completed kitchen orders cleared", "cleared_count": cleared_count}
 
 
 @app.post("/kitchen/items/{item_id}/toggle")

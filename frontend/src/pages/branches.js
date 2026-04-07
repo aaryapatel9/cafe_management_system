@@ -39,9 +39,12 @@ export function renderBranches(container) {
               <option value="false" ${editingBranch?.is_active === false ? "selected" : ""}>Inactive</option>
             </select>
           </div>
-          <div style="display:flex;align-items:end;gap:var(--space-sm);flex-wrap:wrap">
-            <button class="btn btn-primary" type="submit">${editingBranch ? "Save Changes" : "Create Branch"}</button>
-            ${editingBranch ? '<button class="btn btn-ghost" type="button" id="branch-cancel-btn">Cancel</button>' : ""}
+          <div class="form-group" style="justify-content:flex-end">
+            <label class="form-label" style="opacity:0">Actions</label>
+            <div style="display:flex;align-items:center;gap:var(--space-sm);flex-wrap:wrap;min-height:46px">
+              <button class="btn btn-primary" type="submit">${editingBranch ? "Save Changes" : "Create Branch"}</button>
+              ${editingBranch ? '<button class="btn btn-ghost" type="button" id="branch-cancel-btn">Cancel</button>' : ""}
+            </div>
           </div>
         </form>
       </div>

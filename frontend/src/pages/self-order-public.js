@@ -38,9 +38,12 @@ export async function renderSelfOrderPublic(token, query = {}) {
   const currency = store.get("settings")?.currency || "₹";
   const upiId = String(query?.upi || "").trim();
   const savedOrderKey = `self_order_active_${token}`;
+  const previousTheme = document.documentElement.getAttribute("data-theme") || "light";
   let socket = null;
   let reconnectTimer = null;
   let shouldReconnect = true;
+
+  document.documentElement.setAttribute("data-theme", "dark");
 
   const cleanupSocket = () => {
     if (reconnectTimer) {
@@ -61,6 +64,7 @@ export async function renderSelfOrderPublic(token, query = {}) {
   window.addEventListener("hashchange", () => {
     shouldReconnect = false;
     cleanupSocket();
+    document.documentElement.setAttribute("data-theme", previousTheme);
   }, { once: true });
 
   if (!isPhoneDevice()) {
