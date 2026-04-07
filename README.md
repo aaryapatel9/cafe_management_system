@@ -96,15 +96,18 @@ cms/
 - Branch-aware sessions and order flow
 - Floor-wise table view for dine-in operations
 - Send-to-kitchen workflow
+- Self-orders from phone are treated as already sent to the kitchen
 - Cash, card, and UPI payment handling
 - Branch-specific payment enable/disable controls
 - Branch-specific UPI ID persistence after logout/login
+- Quick active/inactive user toggle from the Users list
 
 ### Kitchen and Displays
 
 - Kitchen order queue with stage updates
 - Order status progression:
   `Placed -> Preparing -> Ready`
+- Chef refresh can permanently clear completed tickets from the kitchen queue for that branch
 - Customer display for active orders
 - Customer display is locked from navigating back into staff pages
 
@@ -114,6 +117,7 @@ cms/
 - QR opens a mobile-only ordering page
 - Customers can browse menu, add to cart, and place an order directly from phone
 - Orders go straight to the kitchen
+- Phone self-order page stays in dark theme for a dedicated customer-facing look
 - Phone page gets live kitchen and payment updates through WebSockets
 - Active self-order is saved on the phone, so refresh does not lose status
 - Customers can use `Order Again` for a fresh order from the same table
@@ -327,6 +331,7 @@ Live events include:
 - The frontend is a Vite SPA written in vanilla JavaScript, not React.
 - Branch payment settings are stored in the backend per branch.
 - UPI ID should persist after logout/login.
+- The app defaults to light mode, except the public phone self-order page which intentionally stays dark.
 - Self-order QR links should use your LAN IP in `frontend/.env`.
 - Both laptop and phone must be on the same Wi-Fi network for LAN testing.
 - Prisma is used as a schema mirror; the live backend ORM is SQLAlchemy.
@@ -418,7 +423,22 @@ If it still happens:
 - confirm browser local storage is not blocked
 - make sure the backend is reachable from the phone
 
-### 5. UPI ID is not saved after login/logout
+### 5. Completed kitchen orders come back after restart
+
+This should no longer happen once the backend is restarted with the latest version.
+
+Current behavior:
+
+- chef `Refresh` permanently clears completed kitchen tickets for that branch
+- cleared tickets should stay gone after browser refresh or backend restart
+
+If they still return:
+
+- restart the backend so the `kitchen_cleared` column and route are active
+- click `Refresh` in the kitchen display again
+- verify you are looking at the intended branch
+
+### 6. UPI ID is not saved after login/logout
 
 This should now persist per branch in the backend.
 
@@ -428,7 +448,7 @@ If it does not:
 - save the UPI ID again
 - confirm you are editing the intended branch
 
-### 6. Enabling/disabling a payment method affects all branches
+### 7. Enabling/disabling a payment method affects all branches
 
 That was an older issue. Current behavior is branch-specific.
 
@@ -438,7 +458,7 @@ If you still see it:
 - hard refresh the page
 - confirm the backend is updated and restarted
 
-### 7. Self-order page looks distorted
+### 8. Self-order page looks distorted
 
 Usually stale frontend assets or an old cached build.
 
@@ -448,7 +468,7 @@ Fix:
 - hard refresh the phone browser
 - open the QR link again
 
-### 8. `prisma db push` fails
+### 9. `prisma db push` fails
 
 Check root `.env`:
 
@@ -462,7 +482,7 @@ Also verify:
 - database exists
 - credentials are correct
 
-### 9. `Branch not found`
+### 10. `Branch not found`
 
 This happens when an invalid or stale branch id is used.
 
@@ -472,7 +492,17 @@ Fix:
 - log out and log back in
 - verify the branch still exists
 
-### 10. `Product ... does not belong to the session branch`
+### 11. Product variants do not update after editing
+
+This was caused by a frontend/backend payload mismatch in older builds.
+
+If you still see it:
+
+- restart the backend
+- save the product again
+- confirm you are on the latest backend code
+
+### 12. `Product ... does not belong to the session branch`
 
 This means the session and product belong to different branches.
 
